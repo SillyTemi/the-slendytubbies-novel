@@ -90,6 +90,55 @@
       cursor: default;
     }
 
+    .music-control {
+      position: fixed;
+      top: 12px;
+      left: 16px;
+      z-index: 10;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    #musicButton {
+      background: black;
+      color: white;
+      border: 1px solid white;
+      padding: 8px 12px;
+      font-family: inherit;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .music-panel {
+      width: 180px;
+      margin-top: 6px;
+      padding: 14px;
+      background: black;
+      color: white;
+      border: 1px solid white;
+    }
+
+    .music-panel[hidden] {
+      display: none;
+    }
+
+    .music-panel label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    #volumeSlider {
+      width: 100%;
+      accent-color: white;
+      cursor: pointer;
+    }
+
+    #volumeValue {
+      display: block;
+      margin-top: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
+
     @media (max-width: 600px) {
       .reader {
         padding: 2vh 3vw 1vh;
@@ -110,11 +159,44 @@
       .number {
         font-size: 15px;
       }
+
+      .music-control {
+        top: 6px;
+        left: 6px;
+      }
+
+      #musicButton {
+        padding: 6px 9px;
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 
 <body>
+  <div class="music-control">
+    <button
+      id="musicButton"
+      type="button"
+      aria-expanded="false"
+      aria-controls="musicPanel"
+    >Music</button>
+
+    <div class="music-panel" id="musicPanel" hidden>
+      <label for="volumeSlider">Volume</label>
+      <input
+        id="volumeSlider"
+        type="range"
+        min="0"
+        max="100"
+        value="50"
+      >
+      <span id="volumeValue">50%</span>
+    </div>
+  </div>
+
+  <audio id="backgroundMusic" src="happymusic.mp3" loop preload="auto"></audio>
+
   <main class="reader">
     <header class="chapter-title">
       CHAPTER 1 - Silent Sunrise
@@ -187,17 +269,11 @@ Po turned around and asked:
 "Awww... That's so sweet of you! I love you too Noo Noo!" Po replied, before waving at Noo Noo and going back towards the house.`,
 
       `Write the contents of page 4 here.`,
-
       `Write the contents of page 5 here.`,
-
       `Write the contents of page 6 here.`,
-
       `Write the contents of page 7 here.`,
-
       `Write the contents of page 8 here.`,
-
       `Write the contents of page 9 here.`,
-
       `Write the contents of page 10 here.`
     ];
 
@@ -238,6 +314,34 @@ Po turned around and asked:
     document.addEventListener("keydown", (event) => {
       if (event.key === "ArrowLeft") previous.click();
       if (event.key === "ArrowRight") next.click();
+    });
+
+    const musicButton = document.getElementById("musicButton");
+    const musicPanel = document.getElementById("musicPanel");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const volumeValue = document.getElementById("volumeValue");
+    const backgroundMusic = document.getElementById("backgroundMusic");
+
+    volumeSlider.value = 50;
+    backgroundMusic.volume = 0.5;
+
+    musicButton.addEventListener("click", () => {
+      const isOpening = musicPanel.hidden;
+
+      musicPanel.hidden = !isOpening;
+      musicButton.setAttribute("aria-expanded", String(isOpening));
+
+      if (isOpening && backgroundMusic.paused) {
+        backgroundMusic.play().catch(() => {
+          volumeValue.textContent = "Playback unavailable";
+        });
+      }
+    });
+
+    volumeSlider.addEventListener("input", () => {
+      const volume = Number(volumeSlider.value);
+      backgroundMusic.volume = volume / 100;
+      volumeValue.textContent = `${volume}%`;
     });
 
     renderPages();
