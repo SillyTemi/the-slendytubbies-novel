@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHAPTER 1 - Silent Sunrise</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: Georgia, "Times New Roman", serif;
+      overflow: hidden;
+    }
+
+    .reader {
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: 3.2vh 4.4vw 1.5vh;
+    }
+
+    .chapter-title {
+      text-align: center;
+      font-size: clamp(16px, 2vw, 26px);
+      margin-bottom: 2vh;
+      flex-shrink: 0;
+    }
+
+    .pages {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3.6vw;
+    }
+
+    .page {
+      position: relative;
+      min-width: 0;
+      border: 2px solid white;
+      padding: 2.2vh 1.2vw 5vh;
+      overflow: hidden;
+    }
+
+    .content {
+      font-size: clamp(14px, 1.75vw, 24px);
+      line-height: 1.15;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .number {
+      position: absolute;
+      bottom: 1.1vh;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 7vh;
+      flex-shrink: 0;
+    }
+
+    .arrow {
+      border: none;
+      background: none;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: clamp(40px, 5vw, 64px);
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .arrow:disabled {
+      opacity: 0.25;
+      cursor: default;
+    }
+
+    @media (max-width: 600px) {
+      .reader {
+        padding: 2vh 3vw 1vh;
+      }
+
+      .pages {
+        gap: 3vw;
+      }
+
+      .page {
+        padding: 1.5vh 2vw 4vh;
+      }
+
+      .content {
+        font-size: clamp(12px, 3vw, 18px);
+      }
+
+      .number {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="reader">
+
+    <header class="chapter-title">
+      CHAPTER 1 - Silent Sunrise
+    </header>
+
+    <div class="pages">
+      <section class="page">
+        <div class="content" id="leftText"></div>
+        <div class="number" id="leftNumber">1</div>
+      </section>
+
+      <section class="page">
+        <div class="content" id="rightText"></div>
+        <div class="number" id="rightNumber">2</div>
+      </section>
+    </div>
+
+    <nav class="navigation">
+      <button class="arrow" id="previous"
+        aria-label="Previous pages" disabled>⟵</button>
+
+      <button class="arrow" id="next"
+        aria-label="Next pages">⟶</button>
+    </nav>
+
+  </main>
+
+  <script>
+    const pages = [
+      `As the sun rose for another bright day, the usual
+morning routine began.
+The speakers came from the ground, the rabbits
+left their holes, and the flowers bloomed, as the
+teletubbies opened their eyes and jumped out of
+bed.`,
+
+      `Write the contents of page 2 here.`,
+
+      `Write the contents of page 3 here.`,
+
+      `Write the contents of page 4 here.`,
+
+      `Write the contents of page 5 here.`,
+
+      `Write the contents of page 6 here.`,
+
+      `Write the contents of page 7 here.`,
+
+      `Write the contents of page 8 here.`,
+
+      `Write the contents of page 9 here.`,
+
+      `Write the contents of page 10 here.`
+    ];
+
+    let currentPage = 0;
+
+    const leftText = document.getElementById("leftText");
+    const rightText = document.getElementById("rightText");
+    const leftNumber = document.getElementById("leftNumber");
+    const rightNumber = document.getElementById("rightNumber");
+    const previous = document.getElementById("previous");
+    const next = document.getElementById("next");
+
+    function renderPages() {
+      leftText.textContent = pages[currentPage] || "";
+      rightText.textContent = pages[currentPage + 1] || "";
+
+      leftNumber.textContent = currentPage + 1;
+      rightNumber.textContent = currentPage + 2;
+
+      previous.disabled = currentPage === 0;
+      next.disabled = currentPage + 2 >= pages.length;
+    }
+
+    previous.addEventListener("click", () => {
+      if (currentPage >= 2) {
+        currentPage -= 2;
+        renderPages();
+      }
+    });
+
+    next.addEventListener("click", () => {
+      if (currentPage + 2 < pages.length) {
+        currentPage += 2;
+        renderPages();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") previous.click();
+      if (event.key === "ArrowRight") next.click();
+    });
+
+    renderPages();
+  </script>
+</body>
+</html>
