@@ -224,7 +224,7 @@
   </main>
 
   <script>
-    const pages = [
+    const storySections = [
       `As the sun rose for another day in Teletubbyland, the same morning routine began as usual. The rabbits left their homes, the many flowers bloomed all across the fields and the Teletubbies opened their eyes.
 "Good morning, Teletubbyland!" Tinky Winky exclaimed, sitting up in his bed.
 "Good morning Tinky Winky! Good morning Dipsy!" Laa Laa replied, also sitting up.
@@ -307,10 +307,10 @@ Tinky Winky looked at Laa Laa, impressed by her words.
 "Have I ever been wrong?" Laa Laa giggled and Tinky Winky smiled.
 "I guess I should be seeing this special day as an opportunity rather than an obstacle. Thanks for telling me this Laa Laa, I think I needed to hear it."
 "You're welcome Tinky Winky! Now... Can we go back inside please? The sun's hurting my eyes."
-"You have pretty sensitive eyes huh?"`,
+"You have pretty sensitive eyes huh?"
+Laa Laa smiled and gave him a gentle joke punch on the shoulder, before standing up and going back to the house as he followed behind."`,
 
-      `Laa Laa smiled and gave him a gentle joke punch on the shoulder, before standing up and going back to the house as he followed behind."
-As soon as both of them arrived back inside, Po was finished fixing the machine and Dipsy was already eating his tubby custard.
+      `As soon as both of them arrived back inside, Po was finished fixing the machine and Dipsy was already eating his tubby custard.
 "Oh hey guys! I managed to fix it." Po said excitedly, preparing the next tubby custard.
 After a few hours, the Teletubbies were done eating and chatting together, as the sun slowly started to set.
 While the Teletubbies were getting ready for bed, Dipsy walked up to Po and asked her:
@@ -321,11 +321,11 @@ Dipsy nodded and walked to his bed.
 All the teletubbies slowly fell asleep, except for Po again. Po was thinking about tons of things and feeling anxious over those thoughts.
 As Po slowly began to fall asleep, she heard a very loud thud sound coming from the custard machine, making her instantly jump up and look over to it.
 Po's eyes were instantly met with the sight of Tinky Winky holding a hammer, destroying the entire machine before walking to the door and leaving the house.
-She got out of her bed and looked at her other two friends asleep, and decided to wake them up.`,
+She got out of her bed and looked at her other two friends asleep, and decided to wake them up.
+"Guys! Wake up!" She whispered while shaking Laa Laa.
+Laa Laa slowly woke up and looked at Po confused, but Dipsy remained asleep.`,
 
-      `"Guys! Wake up!" She whispered while shaking Laa Laa.
-Laa Laa slowly woke up and looked at Po confused, but Dipsy remained asleep.
-"Po...? What's up? Why are you waking us up so late at night?" Laa Laa asked, rubbing her eyes.
+      `"Po...? What's up? Why are you waking us up so late at night?" Laa Laa asked, rubbing her eyes.
 "Tinky Winky went mad! He broke the machine and walked out at night!"
 Laa Laa's eyes went wide as she turned to face the open door and realize Po was telling the truth. 
 While Laa Laa got out of bed, Po went back to the table and grabbed the flashlight, noticing something missing.
@@ -407,6 +407,7 @@ Over the hills and far away, there was no one left to giggle and play.`,
 
     ]
 
+    let pages = [];
     let currentPage = 0;
 
     const leftText = document.getElementById("leftText");
@@ -415,6 +416,63 @@ Over the hills and far away, there was no one left to giggle and play.`,
     const rightNumber = document.getElementById("rightNumber");
     const previous = document.getElementById("previous");
     const next = document.getElementById("next");
+
+    // Combine the original story sections, then split them into pages of at most 14 lines.
+    // This keeps the story text itself intact and lets the layout adapt to the screen width.
+    const fullStory = storySections.join("\n");
+    const MAX_LINES = 14;
+
+    function paginateStory() {
+      const contentStyle = getComputedStyle(leftText);
+      const measure = document.createElement("div");
+      measure.style.position = "absolute";
+      measure.style.visibility = "hidden";
+      measure.style.pointerEvents = "none";
+      measure.style.left = "-10000px";
+      measure.style.top = "0";
+      measure.style.width = `${leftText.clientWidth}px`;
+      measure.style.fontFamily = contentStyle.fontFamily;
+      measure.style.fontSize = contentStyle.fontSize;
+      measure.style.fontWeight = contentStyle.fontWeight;
+      measure.style.fontStyle = contentStyle.fontStyle;
+      measure.style.lineHeight = contentStyle.lineHeight;
+      measure.style.letterSpacing = contentStyle.letterSpacing;
+      measure.style.whiteSpace = contentStyle.whiteSpace;
+      measure.style.overflowWrap = contentStyle.overflowWrap;
+      measure.style.padding = "0";
+      measure.style.border = "0";
+      document.body.appendChild(measure);
+
+      const lineHeight = parseFloat(contentStyle.lineHeight) || parseFloat(contentStyle.fontSize) * 1.35;
+      function lineCount(text) {
+        measure.textContent = text || " ";
+        return Math.max(1, Math.ceil(measure.scrollHeight / lineHeight - 0.01));
+      }
+
+      const tokens = fullStory.match(/\s+|\S+/g) || [];
+      const result = [];
+      let current = "";
+
+      for (const token of tokens) {
+        const candidate = current + token;
+        if (current && lineCount(candidate) > MAX_LINES) {
+          result.push(current.trimEnd());
+          current = token.trimStart();
+          // A paragraph break at the beginning of a new page should not create empty lines.
+          current = current.replace(/^\n+/, "");
+        } else {
+          current = candidate;
+        }
+      }
+
+      if (current.trim()) result.push(current.trimEnd());
+      if (result.length % 2 !== 0) result.push("");
+      document.body.removeChild(measure);
+      pages = result;
+      currentPage = Math.min(currentPage, Math.max(0, pages.length - 2));
+      currentPage -= currentPage % 2;
+      renderPages();
+    }
 
     function renderPages() {
       leftText.textContent = pages[currentPage] || "";
@@ -474,7 +532,10 @@ Over the hills and far away, there was no one left to giggle and play.`,
       volumeValue.textContent = `${volume}%`;
     });
 
-    renderPages();
+    paginateStory();
+    window.addEventListener("resize", () => {
+      paginateStory();
+    });
   </script>
 </body>
 </html>
