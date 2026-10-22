@@ -196,6 +196,9 @@
   </div>
 
   <audio id="backgroundMusic" src="happymusic.mp3" loop preload="auto"></audio>
+  <audio id="tiptoeMusic" src="tiptoe.mp3" loop preload="auto"></audio>
+  <audio id="thechaseMusic" src="thechase.mp3" loop preload="auto"></audio>
+  <audio id="rainMusic" src="rain.mp3" loop preload="auto"></audio>
 
   <main class="reader">
     <header class="chapter-title">
@@ -453,27 +456,60 @@ Over the hills and far away, there was no one left to giggle and play.`,
     const volumeSlider = document.getElementById("volumeSlider");
     const volumeValue = document.getElementById("volumeValue");
     const backgroundMusic = document.getElementById("backgroundMusic");
+    const tiptoeMusic = document.getElementById("tiptoeMusic");
+    const thechaseMusic = document.getElementById("thechaseMusic");
+    const rainMusic = document.getElementById("rainMusic");
+    const musicTracks = [backgroundMusic, tiptoeMusic, thechaseMusic, rainMusic];
+    let musicEnabled = false;
 
     volumeSlider.value = 50;
-    backgroundMusic.volume = 0.5;
+    musicTracks.forEach(track => { track.volume = 0.5; });
 
-    musicButton.addEventListener("click", () => {
+    function trackForPage(pageNumber) {
+      if (pageNumber >= 1 && pageNumber <= 8) return backgroundMusic;
+      if (pageNumber >= 9 && pageNumber <= 10) return tiptoeMusic;
+      if (pageNumber >= 11 && pageNumber <= 14) return thechaseMusic;
+      return rainMusic; // Page 15
+    }
+
+    async function updateMusicForCurrentSpread() {
+      const wantedTrack = trackForPage(currentPage + 1);
+      musicTracks.forEach(track => {
+        if (track !== wantedTrack) track.pause();
+      });
+
+      if (musicEnabled) {
+        if (wantedTrack.paused) {
+          try {
+            await wantedTrack.play();
+          } catch (error) {
+            volumeValue.textContent = "Playback unavailable";
+          }
+        }
+      }
+    }
+
+    const originalRenderPages = renderPages;
+    renderPages = function() {
+      originalRenderPages();
+      updateMusicForCurrentSpread();
+    };
+
+    musicButton.addEventListener("click", async () => {
       const isOpening = musicPanel.hidden;
-
       musicPanel.hidden = !isOpening;
       musicButton.setAttribute("aria-expanded", String(isOpening));
 
-      if (isOpening && backgroundMusic.paused) {
-        backgroundMusic.play().catch(() => {
-          volumeValue.textContent = "Playback unavailable";
-        });
+      if (isOpening) {
+        musicEnabled = true;
+        await updateMusicForCurrentSpread();
       }
     });
 
     volumeSlider.addEventListener("input", () => {
-      const volume = Number(volumeSlider.value);
-      backgroundMusic.volume = volume / 100;
-      volumeValue.textContent = `${volume}%`;
+      const volume = Number(volumeSlider.value) / 100;
+      musicTracks.forEach(track => { track.volume = volume; });
+      volumeValue.textContent = `${volumeSlider.value}%`;
     });
 
     renderPages();
